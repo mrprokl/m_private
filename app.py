@@ -23,14 +23,6 @@ if uploaded_file is not None:
             if 'Unnamed: 0' in data.columns:
                 data = data.drop(columns=['Unnamed: 0'])
             
-            # Filter by date if last_date is provided
-            if last_date is not None:
-                data['Date_parsed'] = pd.to_datetime(data['Date'], format='%d/%m/%y', errors='coerce')
-                last_date_pd = pd.Timestamp(last_date)
-                data = data[data['Date_parsed'] > last_date_pd].copy()
-                data = data.drop(columns=['Date_parsed'])
-                st.info(f"Filtrage appliqué: {len(data)} lignes après la date {last_date.strftime('%d/%m/%Y')}")
-            
             # Add group index based on client headers
             is_date_nan = data['Date'].isna()
             is_header_client = is_date_nan & data['CJ Fol'].notna()
@@ -102,6 +94,15 @@ if uploaded_file is not None:
             
             # Prepare TXT output
             final_df = data[data['date_reglement'].notna()].copy()
+            
+            # Filter by last_date if provided
+            if last_date is not None:
+                final_df['date_reglement_parsed'] = pd.to_datetime(final_df['date_reglement'], format='%d/%m/%y', errors='coerce')
+                last_date_pd = pd.Timestamp(last_date)
+                final_df = final_df[final_df['date_reglement_parsed'] > last_date_pd].copy()
+                final_df = final_df.drop(columns=['date_reglement_parsed'])
+                st.info(f"Filtrage TXT: {len(final_df)} lignes avec date_reglement > {last_date.strftime('%d/%m/%Y')}")
+            
             final_df['date_formatted'] = final_df['date_reglement'].str.replace('/', '', regex=False)
             final_df['montant'] = final_df['Débit'] - final_df['Crédit']
             output_df = final_df[['Pièce', 'date_formatted', 'montant']]
