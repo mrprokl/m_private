@@ -7,6 +7,12 @@ st.write("Uploadez votre fichier Excel pour obtenir les fichiers traités")
 
 uploaded_file = st.file_uploader("Choisir un fichier Excel", type=['xlsx'])
 
+last_date = st.date_input(
+    "Dernière date de traitement (optionnel)",
+    value=None,
+    help="Si renseignée, seules les lignes avec une date supérieure seront traitées"
+)
+
 if uploaded_file is not None:
     if st.button("Traiter le fichier"):
         with st.spinner("Traitement en cours..."):
@@ -16,6 +22,14 @@ if uploaded_file is not None:
             # Drop the first unnamed column if it exists
             if 'Unnamed: 0' in data.columns:
                 data = data.drop(columns=['Unnamed: 0'])
+            
+            # Filter by date if last_date is provided
+            if last_date is not None:
+                data['Date_parsed'] = pd.to_datetime(data['Date'], format='%d/%m/%y', errors='coerce')
+                last_date_pd = pd.Timestamp(last_date)
+                data = data[data['Date_parsed'] > last_date_pd].copy()
+                data = data.drop(columns=['Date_parsed'])
+                st.info(f"Filtrage appliqué: {len(data)} lignes après la date {last_date.strftime('%d/%m/%Y')}")
             
             # Add group index based on client headers
             is_date_nan = data['Date'].isna()
