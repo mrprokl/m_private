@@ -108,7 +108,7 @@ if uploaded_file is not None:
             output_df = final_df[['Pièce', 'date_formatted', 'montant']]
             
             txt_buffer = io.StringIO()
-            output_df.to_csv(txt_buffer, sep=' ', header=False, index=False)
+            output_df.to_csv(txt_buffer, sep='\t', header=False, index=False)
             txt_content = txt_buffer.getvalue()
             
             # Download buttons
